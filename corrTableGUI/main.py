@@ -7,6 +7,8 @@ import math
 from tqdm import tqdm
 import os
 
+#pyuic5 /home/dis/Documents/pasha/bigramms_corrTable/corrTableGUI/corrTableGUI.ui -o /home/dis/Documents/pasha/bigramms_corrTable/corrTableGUI/corrTableGUI.py
+
 
 class corrTableApp(QMainWindow, corrTableGUI.Ui_MainWindow):
     def __init__(self):
@@ -15,9 +17,11 @@ class corrTableApp(QMainWindow, corrTableGUI.Ui_MainWindow):
         self.downloadButton.clicked.connect(self.downloadFile)
         self.calcButton.clicked.connect(self.calculateCorr)
         self.saveButton.clicked.connect(self.saveFile)
+        self.download_sheet.clicked.connect(self.downloadSheet)
 
         self.data = ''
         self.corrTable = ''
+        self.file = ''
 
 
     def downloadFile(self):
@@ -25,14 +29,17 @@ class corrTableApp(QMainWindow, corrTableGUI.Ui_MainWindow):
         options |= QFileDialog.DontUseNativeDialog
         file, _ = QFileDialog.getOpenFileName(self, "Open Files", "",
                                                      "Excel Files (*.xls *.xlsx)", options=options)
-        file = os.path.normpath(file)
+        self.file = os.path.normpath(file)
+
+
+    def downloadSheet(self):
         sheet = ''
         self.sheet.append(sheet)
         sheet = self.sheet.toPlainText().strip()
 
         if sheet == '':
             sheet = "Лист1"
-        self.data = pd.read_excel(file, sheet_name=sheet)
+        self.data = pd.read_excel(self.file, sheet_name=sheet)
         QMessageBox.about(self, "Message", "Таблица загружена")
 
 
