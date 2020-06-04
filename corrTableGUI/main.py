@@ -6,8 +6,10 @@ import numpy as np
 import math
 from tqdm import tqdm
 import os
+from threading import Thread
 
 #pyuic5 /home/dis/Documents/pasha/bigramms_corrTable/corrTableGUI/corrTableGUI.ui -o /home/dis/Documents/pasha/bigramms_corrTable/corrTableGUI/corrTableGUI.py
+
 
 
 class corrTableApp(QMainWindow, corrTableGUI.Ui_MainWindow):
@@ -42,8 +44,17 @@ class corrTableApp(QMainWindow, corrTableGUI.Ui_MainWindow):
         self.data = pd.read_excel(self.file, sheet_name=sheet)
         QMessageBox.about(self, "Message", "Таблица загружена")
 
+    def thread(func):
+        def wrapper(*args, **kwargs):
+            current_thread = Thread(target=func, args=args, kwargs=kwargs)
+            print(1)
+            current_thread.start()
+            print(2)
+        return wrapper
 
-    def calculateCorr(self):
+
+    @thread
+    def calculateCorr(self, *args, **kwargs):
         data_sumPrim_sumSq = self.data.copy()
         datalist = np.array(self.data.select_dtypes(include='int64'))
         num_rows = len(datalist)
@@ -80,9 +91,8 @@ class corrTableApp(QMainWindow, corrTableGUI.Ui_MainWindow):
         self.corrCritical.append(corrCritical)
         corrCritical = float(self.corrCritical.toPlainText().strip())
 
-        self.corrTable = pd.DataFrame(
-            columns=['numBigramm', *self.data.columns[1:], '№ 1-го слова', 'Первое слово', '№ 2-го слова', 'Второе слово',
-                     'corr'])
+        self.corrTable = pd.DataFrame(columns=['numBigramm', 'corr', '№ 1-го слова', 'Первое слово', *self.data.columns[1:], '№ 2-го слова', 'Второе слово', *self.data.columns[1:]])
+
 
         numBigramm = 0
         sumXY = 0
@@ -106,11 +116,14 @@ class corrTableApp(QMainWindow, corrTableGUI.Ui_MainWindow):
                 if corr > corrCritical:
                     numBigramm += 1
                     self.corrTable = self.corrTable.append(pd.Series(
-                        [numBigramm, *self.data.iloc[i1, 1:].values, data_sumPrim_sumSq.loc[i1, '№'], self.data.iloc[i1, 0],
-                         data_sumPrim_sumSq.loc[i2, '№'], self.data.iloc[i2, 0], corr], index=self.corrTable.columns),
-                        ignore_index=True)
+                        [numBigramm, corr, data_sumPrim_sumSq.loc[i1,'№'], self.data.iloc[i1,0],
+                         *self.data.iloc[i1,1:].values, data_sumPrim_sumSq.loc[i2,'№'], self.data.iloc[i2,0],
+                         *self.data.iloc[i2,1:].values], index=self.corrTable.columns), ignore_index=True)
+
             self.progressBar.setValue(i1+1)
+
         QMessageBox.about(self, "Message", "Расчет окончен")
+
 
     def saveFile(self):
         options = QFileDialog.Options()
