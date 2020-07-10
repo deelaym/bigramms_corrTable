@@ -33,7 +33,8 @@ class frequencyOfWordsApp(QMainWindow, freqWordsGUI.Ui_MainWindow):
         text_list_wo_punct = list()
         long_text = ''
         for i in range(len(text_list)):
-            text_list_wo_punct.append(re.sub('\W+|\d+|\_+', ' ', text_list[i]))
+            one_text = re.sub('\-+', '', text_list[i])
+            text_list_wo_punct.append(re.sub('\W+|\d+|\_+', ' ', one_text))
             long_text += text_list_wo_punct[i]
 
         text_list_wo_punct = [re.split('\s+', text.lower()) for text in text_list_wo_punct]
